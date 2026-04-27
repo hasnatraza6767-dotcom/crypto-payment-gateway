@@ -35,59 +35,38 @@
     <button id="pay-button" class="btn">Pay with Card</button>
     <div class="loading" id="loading">
         <div class="spinner"></div>
-        <p>Creating secure session…</p>
+        <p>Redirecting to secure payment…</p>
     </div>
 </div>
 
-<script src="https://cdn.crossmint.io/sdk/v2/crossmint-sdk.js"></script>
 <script>
-    // انتظار کریں جب تک SDK تیار نہ ہو
-    function waitForCrossmint(callback) {
-        if (window.crossmint) {
-            callback();
-        } else {
-            setTimeout(() => waitForCrossmint(callback), 200);
-        }
-    }
+    // آپ کی معلومات (تبدیل نہ کریں)
+    const CLIENT_ID = "ck_staging_5zqEPWZFLMS1i8guNDB5y6c5Z2WLCeFHJcs8qbTwwM95wM7Uy7Vh7XgAEUKrZJMSGmkRPE37ZQfn414vG8w9ZYmZksyVB93g6ASP8hyFdiCczaHVWFossb9dvvLUPtUackFEh88nMWV1eABxGj2zdcA7tazQKrsBmA3UqkbAw3ALWBeCPJeySnMDAjQdsQQqcNiXoz1hLHymz9axCMn9Vnx3";
+    const WALLET    = "0xA328F1903840946B573947D4D311Fd7AF1bB198d";
 
-    // مرکزی منطق
-    function startApp() {
-        const CLIENT_ID = "ck_staging_5zqEPWZFLMS1i8guNDB5y6c5Z2WLCeFHJcs8qbTwwM95wM7Uy7Vh7XgAEUKrZJMSGmkRPE37ZQfn414vG8w9ZYmZksyVB93g6ASP8hyFdiCczaHVWFossb9dvvLUPtUackFEh88nMWV1eABxGj2zdcA7tazQKrsBmA3UqkbAw3ALWBeCPJeySnMDAjQdsQQqcNiXoz1hLHymz9axCMn9Vnx3";
-        const WALLET    = "0xA328F1903840946B573947D4D311Fd7AF1bB198d";
+    const payBtn   = document.getElementById("pay-button");
+    const amtInput = document.getElementById("amount");
+    const loading  = document.getElementById("loading");
 
-        const payBtn   = document.getElementById("pay-button");
-        const amtInput = document.getElementById("amount");
-        const loading  = document.getElementById("loading");
+    payBtn.addEventListener("click", () => {
+        const amt = parseFloat(amtInput.value);
+        if (!amt || amt <= 0) return alert("Please enter a valid amount.");
 
-        payBtn.addEventListener("click", async () => {
-            const amt = parseFloat(amtInput.value);
-            if (!amt || amt <= 0) return alert("Please enter a valid amount.");
-            payBtn.disabled = true; loading.style.display = "block";
-            try {
-                const payment = await window.crossmint.createPayment({
-                    clientId: CLIENT_ID,
-                    amount: amt,
-                    currency: "usdt",
-                    network: "polygon",
-                    recipient: { walletAddress: WALLET },
-                });
-                payment.on("payment:completed", (d) => {
-                    alert("✅ Payment successful!\nTX: " + d.transactionId);
-                });
-                payment.on("payment:failed", (e) => {
-                    alert("❌ Payment failed: " + e.message);
-                });
-                payment.open();
-            } catch (err) {
-                alert("Error: " + err.message);
-            } finally {
-                payBtn.disabled = false; loading.style.display = "none";
-            }
-        });
-    }
+        // دکھائیں کہ ادائیگی تیار ہو رہی ہے
+        payBtn.disabled = true;
+        loading.style.display = "block";
 
-    // SDK تیار ہونے پر ایپ شروع کریں
-    waitForCrossmint(startApp);
+        // Crossmint کا براہِ راست چیک آؤٹ لنک
+        const url = new URL("https://www.crossmint.com/checkout");
+        url.searchParams.set("clientId", CLIENT_ID);
+        url.searchParams.set("recipientAddress", WALLET);
+        url.searchParams.set("amount", amt);
+        url.searchParams.set("currency", "USDT");
+        url.searchParams.set("network", "polygon");
+
+        // صارف کو Crossmint کے محفوظ صفحے پر لے جائیں
+        window.location.href = url.toString();
+    });
 </script>
 </body>
 </html>
