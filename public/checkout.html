@@ -39,20 +39,21 @@
     </div>
 </div>
 
-<!-- Crossmint SDK v2 (پکا اور فعال) -->
+<!-- Crossmint SDK -->
 <script src="https://cdn.crossmint.io/sdk/v2/crossmint-sdk.js"></script>
 <script>
-    // SDK کے لوڈ ہونے تک انتظار کریں
-    function waitForSDK(callback) {
+    // SDK کے تیار ہونے تک انتظار
+    function waitForSDK(cb) {
         if (window.crossmint && typeof window.crossmint.createPayment === 'function') {
-            callback();
+            cb();
         } else {
-            setTimeout(function() { waitForSDK(callback); }, 300);
+            setTimeout(function() { waitForSDK(cb); }, 300);
         }
     }
 
-    function initApp() {
-        const CLIENT_ID = "ck_staging_28fZwVStHAcaErKZFmu8UD9QEbnALQPiksGSLcuKnqyCzdGyBSwXHMT8GhbCXt6F5HVMAPeJTouA85wrFeNBnaWQivFZGnMwBAf1JLx2JypkUh8PsHpiLVpgQzMBKoNJhP2FMKPNSXmP5kgqSX7se9uSRjCUwQQwLD2RQ3FmWxMVUin3SGeUJWujPUDNa4b3KFHDGvsNL5QffxXAcczZTTH";
+    function startApp() {
+        // ✅ یہ کلید پکی ہے — اس میں Payments 11/11 enabled ہیں
+        const CLIENT_ID = "ck_staging_5zqEPWZFLMS1i8guNDB5y6c5Z2WLCeFHJcs8qbTwwM95wM7Uy7Vh7XgAEUKrZJMSGmkRPE37ZQfn414vG8w9ZYmZksyVB93g6ASP8hyFdiCczaHVWFossb9dvvLUPtUackFEh88nMWV1eABxGj2zdcA7tazQKrsBmA3UqkbAw3ALWBeCPJeySnMDAjQdsQQqcNiXoz1hLHymz9axCMn9Vnx3";
         const WALLET    = "0xA328F1903840946B573947D4D311Fd7AF1bB198d";
 
         const payBtn = document.getElementById("pay-button");
@@ -83,7 +84,7 @@
                     alert("❌ Payment failed: " + error.message);
                 });
 
-                payment.open();   // پاپ اپ کھولتا ہے
+                payment.open();
 
             } catch (err) {
                 alert("Error: " + err.message);
@@ -94,8 +95,7 @@
         });
     }
 
-    // SDK تیار ہونے پر initApp چلائیں
-    waitForSDK(initApp);
+    waitForSDK(startApp);
 </script>
 </body>
 </html>
