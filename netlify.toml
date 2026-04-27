@@ -1,2 +1,8 @@
 [build]
   publish = "public"
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/checkout"
+  to = "/checkout.html"
+  status = 200
