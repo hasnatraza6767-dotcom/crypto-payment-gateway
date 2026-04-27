@@ -35,44 +35,67 @@
     <button id="pay-button" class="btn">Pay with Card</button>
     <div class="loading" id="loading">
         <div class="spinner"></div>
-        <p>Preparing secure checkout…</p>
+        <p>Creating secure session…</p>
     </div>
 </div>
 
+<!-- Crossmint SDK v2 (پکا اور فعال) -->
+<script src="https://cdn.crossmint.io/sdk/v2/crossmint-sdk.js"></script>
 <script>
-    const payBtn   = document.getElementById("pay-button");
-    const amtInput = document.getElementById("amount");
-    const loading  = document.getElementById("loading");
-
-    payBtn.addEventListener("click", async () => {
-        const amt = parseFloat(amtInput.value);
-        if (!amt || amt <= 0) return alert("Please enter a valid amount.");
-
-        payBtn.disabled = true;
-        loading.style.display = "block";
-
-        try {
-            // اپنی Netlify فنکشن کو کال کریں جو چیک آؤٹ سیشن بنائے
-            const res = await fetch("/.netlify/functions/create-checkout", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ amount: amt })
-            });
-
-            const data = await res.json();
-            if (!data.success || !data.checkoutUrl) {
-                throw new Error(data.error || "Failed to create checkout session");
-            }
-
-            // صارف کو Crossmint کے چیک آؤٹ صفحے پر بھیجیں
-            window.location.href = data.checkoutUrl;
-
-        } catch (err) {
-            alert("Error: " + err.message);
-            payBtn.disabled = false;
-            loading.style.display = "none";
+    // SDK کے لوڈ ہونے تک انتظار کریں
+    function waitForSDK(callback) {
+        if (window.crossmint && typeof window.crossmint.createPayment === 'function') {
+            callback();
+        } else {
+            setTimeout(function() { waitForSDK(callback); }, 300);
         }
-    });
+    }
+
+    function initApp() {
+        const CLIENT_ID = "ck_staging_28fZwVStHAcaErKZFmu8UD9QEbnALQPiksGSLcuKnqyCzdGyBSwXHMT8GhbCXt6F5HVMAPeJTouA85wrFeNBnaWQivFZGnMwBAf1JLx2JypkUh8PsHpiLVpgQzMBKoNJhP2FMKPNSXmP5kgqSX7se9uSRjCUwQQwLD2RQ3FmWxMVUin3SGeUJWujPUDNa4b3KFHDGvsNL5QffxXAcczZTTH";
+        const WALLET    = "0xA328F1903840946B573947D4D311Fd7AF1bB198d";
+
+        const payBtn = document.getElementById("pay-button");
+        const amtInput = document.getElementById("amount");
+        const loadingDiv = document.getElementById("loading");
+
+        payBtn.addEventListener("click", async function() {
+            const amt = parseFloat(amtInput.value);
+            if (!amt || amt <= 0) return alert("Please enter a valid amount.");
+
+            payBtn.disabled = true;
+            loadingDiv.style.display = "block";
+
+            try {
+                const payment = await window.crossmint.createPayment({
+                    clientId: CLIENT_ID,
+                    amount: amt,
+                    currency: "usdt",
+                    network: "polygon",
+                    recipient: { walletAddress: WALLET },
+                });
+
+                payment.on("payment:completed", function(data) {
+                    alert("✅ Payment successful!\nTX: " + data.transactionId);
+                });
+
+                payment.on("payment:failed", function(error) {
+                    alert("❌ Payment failed: " + error.message);
+                });
+
+                payment.open();   // پاپ اپ کھولتا ہے
+
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                payBtn.disabled = false;
+                loadingDiv.style.display = "none";
+            }
+        });
+    }
+
+    // SDK تیار ہونے پر initApp چلائیں
+    waitForSDK(initApp);
 </script>
 </body>
 </html>
