@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Checkout</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:Arial,sans-serif;background:#f0f2f5;display:flex;justify-content:center;align-items:center;min-height:100vh}
+        .card{background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);width:100%;max-width:420px;padding:32px 24px;margin:20px}
+        h2{text-align:center;color:#0f172a;margin-bottom:4px}
+        .sub{text-align:center;color:#64748b;font-size:14px;margin-bottom:24px}
+        .wallet-badge{background:#f1f5f9;border-radius:8px;padding:12px;margin-bottom:20px;font-size:13px;color:#475569;text-align:center;word-break:break-all}
+        .form-group{margin-bottom:20px}
+        label{display:block;font-weight:600;color:#334155;margin-bottom:6px;font-size:14px}
+        input{width:100%;padding:12px 15px;border:2px solid #e2e8f0;border-radius:8px;font-size:16px;background:#f8fafc;transition:.2s}
+        input:focus{outline:none;border-color:#2563eb;background:#fff}
+        .btn{background:#2563eb;color:#fff;border:none;padding:14px;font-size:17px;font-weight:700;border-radius:8px;cursor:pointer;width:100%;transition:.2s}
+        .btn:hover{background:#1d4ed8;transform:translateY(-1px)}
+        .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+        .loading{display:none;text-align:center;padding:16px 0}
+        .spinner{width:32px;height:32px;border:4px solid #e2e8f0;border-top:4px solid #2563eb;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 10px}
+        @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>💳 Pay with Card</h2>
+    <p class="sub">Receive USDT on Polygon instantly</p>
+    <div class="wallet-badge">Receiving wallet:<br><strong>0xA328...bB198d</strong></div>
+    <div class="form-group">
+        <label for="amount">Amount (USD)</label>
+        <input type="number" id="amount" placeholder="e.g. 20" min="1" step="any">
+    </div>
+    <button id="pay-button" class="btn">Pay with Card</button>
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Creating secure session…</p>
+    </div>
+</div>
+
+<script src="https://cdn.crossmint.io/sdk/v2/crossmint-sdk.js"></script>
+<script>
+    // پہلے سے سیٹ — چھیڑیں نہیں
+    const CLIENT_ID = "ck_staging_5zqEPWZFLMS1i8guNDB5y6c5Z2WLCeFHJcs8qbTwwM95wM7Uy7Vh7XgAEUKrZJMSGmkRPE37ZQfn414vG8w9ZYmZksyVB93g6ASP8hyFdiCczaHVWFossb9dvvLUPtUackFEh88nMWV1eABxGj2zdcA7tazQKrsBmA3UqkbAw3ALWBeCPJeySnMDAjQdsQQqcNiXoz1hLHymz9axCMn9Vnx3";
+    const WALLET    = "0xA328F1903840946B573947D4D311Fd7AF1bB198d";
+
+    const payBtn   = document.getElementById("pay-button");
+    const amtInput = document.getElementById("amount");
+    const loading  = document.getElementById("loading");
+
+    payBtn.addEventListener("click", async () => {
+        const amt = parseFloat(amtInput.value);
+        if (!amt || amt <= 0) return alert("Please enter a valid amount.");
+        payBtn.disabled = true; loading.style.display = "block";
+        try {
+            const payment = await window.crossmint.createPayment({
+                clientId: CLIENT_ID,
+                amount: amt,
+                currency: "usdt",
+                network: "polygon",
+                recipient: { walletAddress: WALLET },
+            });
+            payment.on("payment:completed", (d) => {
+                alert("✅ Payment successful!\nTX: " + d.transactionId);
+            });
+            payment.on("payment:failed", (e) => {
+                alert("❌ Payment failed: " + e.message);
+            });
+            payment.open();
+        } catch (err) {
+            alert("Error: " + err.message);
+        } finally {
+            payBtn.disabled = false; loading.style.display = "none";
+        }
+    });
+</script>
+</body>
+</html>
